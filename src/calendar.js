@@ -36,7 +36,6 @@ function createCalendar(year, month){
     var row = Math.ceil((firstDay + lastDate) / 7);
 
     for(var i = 0; i < row; i++){
-        //calendar += "<tr>"
         dates = [];
         for(var j = 0; j < 7; j++){
             var dateProps = {
@@ -56,7 +55,6 @@ function createCalendar(year, month){
             }else{
                 dateProps.day = 'normalday';
             }
-
             //１行目の前月分の日付を表示
             if(i == 0 && j < firstDay){
                dateProps.date = (lastMonthEndDate - firstDay + j + 1);

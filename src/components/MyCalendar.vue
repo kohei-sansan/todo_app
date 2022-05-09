@@ -84,9 +84,9 @@ export default{
                         if(this.rows[i][j].background == 'gold'){
                             //当日ではない背景をノーマルに戻す
                             if(this.rows[i][j].date != today.getDate()){
-                                this.rows[i][j].background = 'normal';
+                                this.rows[i][j].background = 'normalcolor';
                             }
-                        }else if(this.rows[i][j].background == 'normal'){
+                        }else if(this.rows[i][j].background == 'normalcolor'){
                             //当日でノーマル背景を当日背景にセットする
                             if(this.rows[i][j].date == today.getDate()){
                                 this.rows[i][j].background = 'gold';
@@ -128,12 +128,14 @@ export default{
 table {
     outline: 2px solid #ddd;
     border-collapse: collapse;
+    table-layout: fixed;
     width: 100%;
 }
 th, td {
     outline: 1px solid #ddd;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px;
+    /* padding-top: 10px;
+    padding-bottom: 10px; */
     text-align: center;
     
 } 

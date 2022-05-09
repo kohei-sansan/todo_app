@@ -24,7 +24,7 @@
             <!--完了したタスクは削除ボタンが押せるようにする-->
             <button v-show="todo.hoverFlg == true && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
             <!--優先順位を決めるドロップダウン-->
-            <label v-show="todo.hoverFlg == true && !todo.doneFlg" for="priority">優先度変更：</label>
+            <label v-show="todo.hoverFlg == true && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
             <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number" v-model="selectedPriority" id="priority" @change="changePriority(todoIndex)">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount" v-bind:value="n" v-bind:key="n">{{ n }}</option>
@@ -83,6 +83,7 @@ export default {
         addText: '',
         currentYear: new Date().getFullYear(),
         currentMonth: new Date().getMonth() + 1,
+        currentDate: new Date().getDate(),
         //優先順位保持用
         selectedPriority: 0
       }
@@ -109,12 +110,24 @@ export default {
       for(let i = 0; i < this.tasks.length; i++){
         this.tasks[i].deadLine = new Date(this.tasks[i].deadLine);
       }
+      //期限切れタスク削除
+      this.delOldTasks();
     }
-    //this.tasks = null;
-    //localStorage.setItem('tasks',JSON.stringify(this.tasks));
     this.todoList = JSON.parse(localStorage.getItem('todoList'));
   },
   methods:{
+    //期限切れのタスク削除処理
+    delOldTasks(){
+      var delCount = 0;
+      var todayYMD = new Date(this.currentYear, this.currentMonth - 1, this.currentDate);
+      for(let i = 0; i < this.tasks.length; i++){
+        var diffMilliSec = this.tasks[i - delCount].deadLine - todayYMD;
+        if(diffMilliSec < 0){
+          this.tasks.splice(i - delCount, 1);
+          delCount++;
+        }
+      }
+    },
     //todoソート用
     todoSort(todo1,todo2){
       return todo1.priority - todo2.priority;
@@ -205,7 +218,7 @@ export default {
       //var deadLine = new Date(this.deadLine);
       this.deadLineToAdd = new Date(deadLineArray[0],deadLineArray[1],deadLineArray[2]);
       if(!this.isValid('longTerm')){
-        return; //TODO 長期目標の入力チェック処理から
+        return;
       }
       if(this.tasks == null){
         this.tasks = [{name:this.taskName,deadLine: this.deadLineToAdd,delFlg: false}];
@@ -229,29 +242,13 @@ export default {
     //あと何日かを算出する
     calcDeadLine(deadLine){
       //タスク実行日にちまで後何日かを返す
-      var today = new Date();
-      //console.log('today:'+today);
-      var nextDay = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate() + 1);
-      //console.log('nextDay:'+nextDay);
-      //今日の残り時間
-      var remainingTime = nextDay - today;
-      //TODO:残り１日の処理・・・
-      var diffMilliSec = deadLine - today;
-      //console.log('remainingTime:'+remainingTime);
-      //console.log('diffMillSec:'+diffMilliSec);
-      if(diffMilliSec < 0){
-          //タスクの削除（仮）
-            
-      }
+      var todayYMD = new Date(this.currentYear, this.currentMonth - 1, this.currentDate);
+      // console.log('todayYMD:' + todayYMD);
+      // console.log('deadLine:' + deadLine);
+      var diffMilliSec = deadLine - todayYMD;
+      //console.log('diffMilliSec:' + diffMilliSec);
       /*ミリ秒を日数に変換*/
       var diffDays = parseInt(diffMilliSec / 1000 / 60 / 60 / 24);
-      //チェック（必要に応じて、削除も）
-      if(diffDays == 0){
-          //あと何時間を返す
-      }
-      if(diffDays == 0 && diffMilliSec >= remainingTime){
-        diffDays = 1;
-      }
       // 残り日数を返す
       return diffDays;
     },
@@ -412,8 +409,8 @@ export default {
     display: flex;
     padding: 10px;
     margin-top: 30px;
-    margin-left: 100px;
-    margin-right: 100px;
+    margin-left: 120px;
+    margin-right: 150px;
   }
   #child1 {
     width: 55%;
@@ -443,7 +440,8 @@ input#deadLine{
   height: 30px;
 }
 select{
-  height: 20px;
+  position: absolute;
+  right: 65px;
 }
 .today{
   background-color: red;
