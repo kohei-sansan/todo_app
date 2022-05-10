@@ -10,7 +10,7 @@
       <div v-show="listFlg">
         <h2>{{ currentYear }}年{{ currentMonth }}月{{ selectDate() }}日のタスク</h2>
         <div class="todo-inputarea">
-          <input type="text" v-model="addText" style="width: 220px; height: 29px;">
+          <input type="text" v-model="addText" style="width: 320px; height: 29px;">
           <button type="text" class="btn btn-primary btn-add" @click="addTodo">追加</button>
         </div>
         <!--<ol class="list-group">-->
@@ -25,10 +25,10 @@
             <button v-show="todo.hoverFlg == true && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
             <!--優先順位を決めるドロップダウン-->
             <label v-show="todo.hoverFlg == true && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
-            <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number" v-model="todo.priority" id="priority" @change="changePriority(todoIndex)">
+            <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
               <!--todoValidCount：未完了のtodoの数-->
-              <option v-for="n in todoValidCount" v-bind:value="n" v-bind:key="n">{{ n }}</option>
-            </select><!--TODO 優先度ドロップダウンの数は、未完了の分だけにする-->
+              <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
+            </select><!--TODO 優先度ドロップダウンの数は、未完了の分だけにする  -->
           </li>
         </transition-group>
       </div>
@@ -173,7 +173,7 @@ export default {
       //選択された行の優先度を更新
       //this.textDataSet[2][todoIndex].priority = this.selectedPriority;
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[todoIndex]
-        .priority = this.selectedPriority;
+        .priority = selectedPriority;
       //バインド対象を優先順位でソート
       this.textDataSet[2].sort(this.todoSort);
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.sort(this.todoSort);
@@ -226,13 +226,6 @@ export default {
     },
     //タスク追加処理 TODO 入力チェック追加
     addTask(){
-      //this.deadLine:'2022-05-06'
-      // var deadLineArray = [];
-      // deadLineArray = this.deadLine.split('-');
-      // deadLineArray[1].replace('0','');
-      // deadLineArray[1] = (parseInt(deadLineArray[1]) - 1);
-      // //var deadLine = new Date(this.deadLine);
-      // this.deadLineToAdd = new Date(deadLineArray[0],deadLineArray[1],deadLineArray[2]);
       this.deadLineToAdd = this.deadLine;
       if(!this.isValid('longTerm')){
         return;
@@ -304,8 +297,8 @@ export default {
           alert('タスク名を入力してください');
           return false;
         }
-        if(this.addText.length > 15){
-          alert('タスク名は15文字以下にしてください');
+        if(this.addText.length > 20){
+          alert('タスク名は20文字以下にしてください');
           return false;
         }
         for(let i = 0; i < this.textDataSet[2].length; i++){
