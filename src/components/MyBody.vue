@@ -25,7 +25,7 @@
             <button v-show="todo.hoverFlg == true && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
             <!--優先順位を決めるドロップダウン-->
             <label v-show="todo.hoverFlg == true && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
-            <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number" v-model="selectedPriority" id="priority" @change="changePriority(todoIndex)">
+            <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number" v-model="todo.priority" id="priority" @change="changePriority(todoIndex)">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount" v-bind:value="n" v-bind:key="n">{{ n }}</option>
             </select><!--TODO 優先度ドロップダウンの数は、未完了の分だけにする-->
@@ -37,7 +37,8 @@
       <label for="taskName">タスク名</label>
       <input type="text" id="taskName" v-model="taskName">
       <label for="deadLine">期限：</label>
-      <input type="date" id="deadLine" v-model="deadLine">
+      <datepicker id="deadLine" v-model="deadLine"/>
+      <!--<input type="date" id="deadLine" v-model="deadLine">-->
       <button type="text" @click="addTask" class="btn btn-primary btn-add">追加</button>      
       <!--<ol class="list-group" v-if="taskCount">-->
       <transition-group tag="ol" id="longTerm" v-if="taskCount">
@@ -50,12 +51,12 @@
       </transition-group>
     </div>
   </div>
-  
 </template>
 
 <script>
 import {showCalendar, getYM, showNoteJs} from '../calendar';
 import MyCalendar from './MyCalendar';
+import Datepicker from 'vue3-datepicker'
 
 export default {
   name: 'MyBody',
@@ -65,8 +66,6 @@ export default {
         rows2: [],
         taskCount: 0,
         taskName: '',
-        deadLine: '',
-        deadLineArray: [],
         //タスク配列
         tasks:[],
         deadLineToAdd: null,
@@ -85,7 +84,9 @@ export default {
         currentMonth: new Date().getMonth() + 1,
         currentDate: new Date().getDate(),
         //優先順位保持用
-        selectedPriority: 0
+        selectedPriority: 0,
+        deadLine: new Date(),
+        deadLineArray: []
       }
   },
   computed:{
@@ -99,8 +100,18 @@ export default {
       return count;
     }
   },
+  //   getDateStr(){
+  //     let _today = new Date();
+  //     return [
+  //       _today.getFullYear(),
+  //       this.twoDigit(_today.getMonth()+1),
+  //       this.twoDigit(_today.getDate())
+  //     ].join('-');
+  //   }
+  // },
   components:{
-    MyCalendar
+    MyCalendar,
+    Datepicker
   },
   mounted(){
     this.rows2 = JSON.parse(localStorage.getItem('rows'));
@@ -116,11 +127,15 @@ export default {
     this.todoList = JSON.parse(localStorage.getItem('todoList'));
   },
   methods:{
+    twoDigit(value){
+      return ('0' + value).slice(-2);
+    },
     //期限切れのタスク削除処理
     delOldTasks(){
       var delCount = 0;
       var todayYMD = new Date(this.currentYear, this.currentMonth - 1, this.currentDate);
-      for(let i = 0; i < this.tasks.length; i++){
+      var forLength = this.tasks.length;
+      for(let i = 0; i < forLength; i++){
         var diffMilliSec = this.tasks[i - delCount].deadLine - todayYMD;
         if(diffMilliSec < 0){
           this.tasks.splice(i - delCount, 1);
@@ -134,28 +149,29 @@ export default {
     }, 
     //優先順位変更処理
     changePriority(todoIndex){
+      let selectedPriority = this.textDataSet[2][todoIndex].priority;
       //優先度が変わらない場合は最初にリターン
-      if(this.selectedPriority == (todoIndex + 1)){
+      if(selectedPriority == (todoIndex + 1)){
         return;
       }
       //優先順位のズレを直す処理（優先度が上がる、下がるそれぞれズレの直し方が違う）
       //現在位置より上の優先度が選択された場合
       //i.g.優先度４→２の場合、selectedPriority:2 todoIndex:3 移動対象は２
-      if(this.selectedPriority < (todoIndex + 1)){
-        for(let i = (this.selectedPriority - 1); i < todoIndex; i++){
+      if(selectedPriority < (todoIndex + 1)){
+        for(let i = (selectedPriority - 1); i < todoIndex; i++){
           this.textDataSet[2][i].priority++;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority++;
         }
       //現在位置より下の優先度が選択された場合
       //i.g.優先度２→４の場合、selectedPriority:４ todoIndex:１ 移動対象は２
       }else{
-        for(let i = (todoIndex + 1); i < this.selectedPriority; i++){
+        for(let i = (todoIndex + 1); i < selectedPriority; i++){
           this.textDataSet[2][i].priority--;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;
         }
       }
       //選択された行の優先度を更新
-      this.textDataSet[2][todoIndex].priority = this.selectedPriority;
+      //this.textDataSet[2][todoIndex].priority = this.selectedPriority;
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[todoIndex]
         .priority = this.selectedPriority;
       //バインド対象を優先順位でソート
@@ -164,7 +180,7 @@ export default {
       //ソートした内容でストレージにセット
       localStorage.setItem('rows',JSON.stringify(this.rows2));
       
-      this.selectedPriority = 0;
+      //this.selectedPriority = 0;
     },
     //タスク削除処理
     deleteTodo(delIndex){
@@ -211,12 +227,13 @@ export default {
     //タスク追加処理 TODO 入力チェック追加
     addTask(){
       //this.deadLine:'2022-05-06'
-      var deadLineArray = [];
-      deadLineArray = this.deadLine.split('-');
-      deadLineArray[1].replace('0','');
-      deadLineArray[1] = (parseInt(deadLineArray[1]) - 1);
-      //var deadLine = new Date(this.deadLine);
-      this.deadLineToAdd = new Date(deadLineArray[0],deadLineArray[1],deadLineArray[2]);
+      // var deadLineArray = [];
+      // deadLineArray = this.deadLine.split('-');
+      // deadLineArray[1].replace('0','');
+      // deadLineArray[1] = (parseInt(deadLineArray[1]) - 1);
+      // //var deadLine = new Date(this.deadLine);
+      // this.deadLineToAdd = new Date(deadLineArray[0],deadLineArray[1],deadLineArray[2]);
+      this.deadLineToAdd = this.deadLine;
       if(!this.isValid('longTerm')){
         return;
       }
