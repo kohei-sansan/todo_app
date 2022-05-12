@@ -8,13 +8,20 @@
       <MyCalendar @show-text="receiveDataSet" @cal_mounted="rows2 = $event" v-bind:rows="rows2"></MyCalendar>
       <!--選択された日付のtodoリスト表示 コンポーネントで管理する予定-->
       <div v-show="listFlg">
-        <h2>{{ currentYear }}年{{ currentMonth }}月{{ selectDate() }}日のタスク</h2>
+        <h2 style="text-align: left;">{{ currentYear }}年{{ currentMonth }}月{{ selectDate() }}日のタスク</h2>
         <div class="todo-inputarea">
-          <input type="text" v-model="addText" style="width: 320px; height: 29px;">
-          <button type="text" class="btn btn-primary btn-add" @click="addTodo">追加</button>
+          <input type="text" v-model="addText" style="width: 40%; height: 29px; display: inline-block;">
+          <button type="text" class="btn btn-primary btn-add" @click="addTodo" style="width: 10%;">追加</button>
+          <!--全体、完了、未完了を切り替えるラジオボタン-->
+          <input type="radio" name="todos" class="btn-check" id="option1" value="both" v-model="todoState">
+          <label class="btn btn-outline-success" for="option1">全て</label>
+          <input type="radio" name="todos" class="btn-check" id="option2" value="in-progress" v-model="todoState">
+          <label class="btn btn-outline-primary" for="option2">未完了</label>
+          <input type="radio" name="todos" class="btn-check" id="option3" value="done" v-model="todoState">
+          <label class="btn btn-outline-secondary" for="option3">完了</label>
         </div>
-        <!--<ol class="list-group">-->
-        <transition-group tag="ol" id="daily">
+        <!--TODO:それぞれの表示処理実装する-->
+        <transition-group tag="ol" id="daily" v-if="todoState == 'both' ? true : false">
           <li class="list-group-item" id="daily" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false"
           :class="{done: todo.doneFlg}">{{ todo.text }}
@@ -28,18 +35,17 @@
             <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
-            </select><!--TODO 優先度ドロップダウンの数は、未完了の分だけにする  -->
+            </select>
           </li>
         </transition-group>
       </div>
     </div>
     <div id="child2">
-      <label for="taskName">タスク名</label>
-      <input type="text" id="taskName" v-model="taskName">
-      <label for="deadLine">期限：</label>
-      <datepicker id="deadLine" v-model="deadLine"/>
-      <!--<input type="date" id="deadLine" v-model="deadLine">-->
-      <button type="text" @click="addTask" class="btn btn-primary btn-add">追加</button>      
+      <p style="display: flex;">
+        <label for="taskName" styele="float: left;">長期タスク名</label>
+        <input type="text" id="taskName" v-model="taskName">
+        <label for="deadLine">期限：</label><datepicker id="deadLine" v-model="deadLine"/><button type="text" @click="addTask" class="btn btn-primary btn-add" style="width: 10%;">追加</button> 
+      </p>
       <!--<ol class="list-group" v-if="taskCount">-->
       <transition-group tag="ol" id="longTerm" v-if="taskCount">
         <!-- タスクと日付（期限）を表示-->
@@ -86,7 +92,9 @@ export default {
         //優先順位保持用
         selectedPriority: 0,
         deadLine: new Date(),
-        deadLineArray: []
+        deadLineArray: [],
+        //todo進捗ラジオボタン用
+        todoState: 'both'
       }
   },
   computed:{
@@ -414,13 +422,13 @@ export default {
 </script>
 
 <style scoped>
-@media (min-width: 900px) {
+@media screen and (min-width: 1001px){
   #parent {
     display: flex;
-    padding: 10px;
-    margin-top: 30px;
-    margin-left: 120px;
+    margin-top: 40px;
+    margin-left: 150px;
     margin-right: 150px;
+    margin-bottom: 40px;
   }
   #child1 {
     width: 55%;
@@ -429,7 +437,20 @@ export default {
   }
   #child2 {
     width: 45%;
-    margin-left: 20px;
+    /*display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /*margin-left: 20px;*/
+  }
+}
+@media screen and (max-width: 1000px){
+  #child1{
+    width: 100%;
+    padding: 60px;
+  }
+  #child2{
+    width: 100%;
+    padding: 60px;
   }
 }
 button{
@@ -443,8 +464,9 @@ button.list-btn{
 }
 .btn-add{
   height: 30px;
-  width: 48px;
-  font-size: 15px;
+  /*width: 25%;*/
+  display: inline-block;
+  /*width: 100%;*/
 }
 input#deadLine{
   height: 30px;
@@ -499,6 +521,9 @@ ol li#daily::before {
   text-decoration: line-through;
 }
 .todo-inputarea{
+  letter-spacing: 0;
+  width: 100%;
+  text-align: left;
   margin-top: 5px;
 }
 .v-enter-active, .v-leave-active, .v-move {
