@@ -10,50 +10,70 @@
       <div v-show="listFlg">
         <h2 style="text-align: left;">{{ currentYear }}年{{ currentMonth }}月{{ selectDate() }}日のタスク</h2>
         <div class="todo-inputarea">
-          <input type="text" v-model="addText" style="width: 40%; height: 29px; display: inline-block;">
+          <input type="text" v-model="addText" style="width: 40%; height: 29px; display: inline-block;" placeholder="タイトル">
+          <textarea v-model="addTextL" ref="addTxtArea" placeholder="メモを追加" :style="textareaStyle"></textarea>
           <button type="text" class="btn btn-primary btn-add" @click="addTodo" style="width: 10%;">追加</button>
           <!--全体、完了、未完了を切り替えるラジオボタン-->
           <input type="radio" name="todos" class="btn-check" id="option1" value="both" v-model="todoState">
           <label class="btn btn-outline-success" for="option1">全て</label>
-          <input type="radio" name="todos" class="btn-check" id="option2" value="in-progress" v-model="todoState">
+          <input type="radio" name="todos" class="btn-check" id="option2" value="not-done" v-model="todoState">
           <label class="btn btn-outline-primary" for="option2">未完了</label>
           <input type="radio" name="todos" class="btn-check" id="option3" value="done" v-model="todoState">
           <label class="btn btn-outline-secondary" for="option3">完了</label>
         </div>
-        <!--TODO:それぞれの表示処理実装する-->
         <transition-group tag="ol" id="daily" v-if="todoState == 'both' ? true : false">
-          <li class="list-group-item" id="daily" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
+          <li class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false"
           :class="{done: todo.doneFlg}">{{ todo.text }}
-            <!--完了ボタン、削除ボタン、優先度コンボボックス 実装する-->
+            <!--メインテキスト表示ボタン TODO:実装中-->
+            <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" @click="todo.textLFlg = true">メモ表示</button>
             <!--完了していないタスクは完了ボタンが押せるようにする-->
-            <button v-show="todo.hoverFlg == true && !todo.doneFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)">完了</button>
+            <button v-show="todo.hoverFlg && !todo.doneFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)">完了</button>
             <!--完了したタスクは削除ボタンが押せるようにする-->
-            <button v-show="todo.hoverFlg == true && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
+            <button v-show="todo.hoverFlg && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
             <!--優先順位を決めるドロップダウン-->
-            <label v-show="todo.hoverFlg == true && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
-            <select  v-show="todo.hoverFlg == true && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
+            <label v-show="todo.hoverFlg && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
+            <select  v-show="todo.hoverFlg && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
             </select>
           </li>
         </transition-group>
+        <transition-group tag="ol" id="daily" v-if="todoState == 'not-done' ? true : false">
+          <li class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in todoNotDones" v-bind:key="todo.text"
+          @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}<!--削除、追加処理をtodoStateによって実装追加-->
+            <button v-show="todo.hoverFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)">完了</button>
+            <label v-show="todo.hoverFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
+            <select  v-show="todo.hoverFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
+              <!--todoValidCount：未完了のtodoの数-->
+              <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
+            </select>
+          </li>
+        </transition-group>
+        <transition-group tag="ol" id="daily" v-if="todoState == 'done' ? true : false">
+          <li class="list-group-item done" id="daily-child" v-for="(todo, todoIndex) in todoDones" v-bind:key="todo.text"
+          @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}
+            <button v-show="todo.hoverFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
+          </li>
+        </transition-group>
       </div>
     </div>
     <div id="child2">
-      <p style="display: flex;">
-        <label for="taskName" styele="float: left;">長期タスク名</label>
-        <input type="text" id="taskName" v-model="taskName">
-        <label for="deadLine">期限：</label><datepicker id="deadLine" v-model="deadLine"/><button type="text" @click="addTask" class="btn btn-primary btn-add" style="width: 10%;">追加</button> 
-      </p>
-      <!--<ol class="list-group" v-if="taskCount">-->
+      <div class="input-group">
+        <div id="input-group1">
+          <label for="taskName">長期タスク名</label>
+          <input type="text" id="taskName" v-model="taskName">
+        </div>
+        <div id="input-group2">
+          <label for="deadLine">期限：</label><datepicker id="deadLine" v-model="deadLine"/><button type="text" @click="addTask" class="btn btn-primary btn-add">追加</button> 
+        </div>
+      </div>
       <transition-group tag="ol" id="longTerm" v-if="taskCount">
         <!-- タスクと日付（期限）を表示-->
-        <li class="list-group-item" id="longTerm" v-for="(task, index) in tasks" v-bind:key="task.name" 
+        <li class="list-group-item" id="long-term-child" v-for="(task, index) in tasks" v-bind:key="task.name" 
         @mouseover="task.delFlg = true" @mouseleave="task.delFlg = false">{{ task.name }}まであと{{ calcDeadLine(task.deadLine) }}日
         <button v-show="task.delFlg" @click="delTask(index)" class="btn btn-secondary list-btn">削除</button>
         </li>
-      <!--</ol>-->
       </transition-group>
     </div>
   </div>
@@ -82,10 +102,16 @@ export default {
         calendarStr: '',
         //カレンダーから取得した日付＆テキスト
         textDataSet: [0,0,[]],
+        //todo未完了リスト
+        todoNotDones: [],
+        //todo完了リスト
+        todoDones: [],
         //リスティング表示フラグ
         listFlg: false,
         //追加テキスト
         addText: '',
+        addTextL: '',
+        addTextLHeight: "60px",
         currentYear: new Date().getFullYear(),
         currentMonth: new Date().getMonth() + 1,
         currentDate: new Date().getDate(),
@@ -97,6 +123,11 @@ export default {
         todoState: 'both'
       }
   },
+  watch:{
+    addTextL(){
+      this.addTextLResize();
+    }
+  },
   computed:{
     todoValidCount(){
       var count = 0;
@@ -106,17 +137,11 @@ export default {
         }
       }
       return count;
+    },
+    textareaStyle(){
+      return {'height': this.addTextLHeight};
     }
   },
-  //   getDateStr(){
-  //     let _today = new Date();
-  //     return [
-  //       _today.getFullYear(),
-  //       this.twoDigit(_today.getMonth()+1),
-  //       this.twoDigit(_today.getDate())
-  //     ].join('-');
-  //   }
-  // },
   components:{
     MyCalendar,
     Datepicker
@@ -135,6 +160,12 @@ export default {
     this.todoList = JSON.parse(localStorage.getItem('todoList'));
   },
   methods:{
+    addTextLResize(){
+      this.addTextLHeight = 'auto';
+      this.$nextTick(()=>{
+          this.addTextLHeight = this.$refs.addTxtArea.scrollHeight + 'px';
+        })
+    },
     twoDigit(value){
       return ('0' + value).slice(-2);
     },
@@ -155,9 +186,14 @@ export default {
     todoSort(todo1,todo2){
       return todo1.priority - todo2.priority;
     }, 
-    //優先順位変更処理
+    //優先順位変更処理 TODO:優先順位の同期をとる && メインテキスト実装
     changePriority(todoIndex){
-      let selectedPriority = this.textDataSet[2][todoIndex].priority;
+      let selectedPriority = '';
+      if(this.todoState == 'both'){
+        selectedPriority = this.textDataSet[2][todoIndex].priority;
+      }else if(this.todoState == 'not-done'){
+        selectedPriority = this.todoNotDones[todoIndex].priority;
+      }
       //優先度が変わらない場合は最初にリターン
       if(selectedPriority == (todoIndex + 1)){
         return;
@@ -168,6 +204,7 @@ export default {
       if(selectedPriority < (todoIndex + 1)){
         for(let i = (selectedPriority - 1); i < todoIndex; i++){
           this.textDataSet[2][i].priority++;
+          this.todoNotDones[i].priority++;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority++;
         }
       //現在位置より下の優先度が選択された場合
@@ -175,33 +212,82 @@ export default {
       }else{
         for(let i = (todoIndex + 1); i < selectedPriority; i++){
           this.textDataSet[2][i].priority--;
+          this.todoNotDones[i].priority--;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;
         }
       }
       //選択された行の優先度を更新
-      //this.textDataSet[2][todoIndex].priority = this.selectedPriority;
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[todoIndex]
         .priority = selectedPriority;
+      //バインド対象ではないモードの優先度セット
+      if(this.todoState == 'both'){
+        this.todoNotDones[todoIndex].priority = selectedPriority;
+      }else if(this.todoState == 'not-done'){
+        this.textDataSet[2][todoIndex].priority = selectedPriority;
+      }
       //バインド対象を優先順位でソート
       this.textDataSet[2].sort(this.todoSort);
+      this.todoNotDones.sort(this.todoSort);
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.sort(this.todoSort);
       //ソートした内容でストレージにセット
       localStorage.setItem('rows',JSON.stringify(this.rows2));
-      
-      //this.selectedPriority = 0;
     },
     //タスク削除処理
     deleteTodo(delIndex){
-      this.textDataSet[2].splice(delIndex, 1);
-      this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex, 1);
-      //ずれている優先順位を修正
-      //最後尾を削除する場合以外で、後続の優先度をー１する
-      if((delIndex + 1) != (this.textDataSet[2].length + 1)){
-        for(let i = delIndex; i < this.textDataSet[2].length; i++){
-          this.textDataSet[2][i].priority--;
-          this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;      
+      if(this.todoState == 'both'){
+        //完了モードから削除する用
+        let delTodoTxt = this.textDataSet[2][delIndex].text;
+        let delIndex2 = 0;
+        let delPosFlg = false;
+        while(!delPosFlg){
+          if(this.todoDones[delIndex2].text == delTodoTxt){
+            this.todoDones.splice(delIndex2, 1);
+            delPosFlg = true;
+          }else{
+            delIndex2++;          
+          }
         }
-      }
+        for(let i = delIndex2; i < this.todoDones.length; i++){
+            this.todoDones[i].priority--;
+        }
+
+        this.textDataSet[2].splice(delIndex, 1);
+        this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex, 1);
+        //ずれている優先順位を修正
+        //最後尾を削除する場合以外で、後続の優先度をー１する
+        if(delIndex != this.textDataSet[2].length){
+          for(let i = delIndex; i < this.textDataSet[2].length; i++){
+            this.textDataSet[2][i].priority--;
+            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;      
+          }
+        }
+      }else if(this.todoState == 'done'){
+        //完了リスト内で削除された際の処理
+        //全表示モードでの削除
+        let delTodoTxt = this.todoDones[delIndex].text;
+        let delIndex2 = 0;
+        let delPosFlg = false;
+        while(!delPosFlg){
+          if(this.textDataSet[2][delIndex2].text == delTodoTxt){
+            this.textDataSet[2].splice(delIndex2, 1);
+            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex2, 1);
+            delPosFlg = true;
+          }else{
+            delIndex2++;          
+          }
+        }
+        for(let i = delIndex2; i < this.textDataSet[2].length; i++){
+            this.textDataSet[2][i].priority--;
+            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;      
+        }
+
+        //完了モードの削除
+        this.todoDones.splice(delIndex, 1);
+        //優先度ズレ調整
+        for(let i = delIndex; i < this.todoDones.length; i++){
+            this.todoDones[i].priority--;
+        }   
+      }     
       //ローカルストレージを更新
       localStorage.setItem('rows',JSON.stringify(this.rows2));
     },
@@ -217,6 +303,10 @@ export default {
       //完了したタスクを最下位にする
       this.textDataSet[2][taskIndex].priority = lastPriority;
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[taskIndex].priority = lastPriority;
+      //未完了モードから削除
+      this.todoNotDones.splice(taskIndex, 1);
+      //完了モードに追加
+      this.todoDones.push({...this.textDataSet[2][taskIndex]});
       //順位をずらす
       for(var i = 0; i < this.textDataSet[2].length; i++){
         if(i != taskIndex){
@@ -225,6 +315,9 @@ export default {
             this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;       
           }
         }
+        if(i >= taskIndex && i <= this.todoNotDones.length - 1){
+          this.todoNotDones[i].priority--;
+        }
       }
       //優先度でソート
       this.textDataSet[2].sort(this.todoSort);
@@ -232,7 +325,7 @@ export default {
       //ローカルストレージを更新
       localStorage.setItem('rows',JSON.stringify(this.rows2));
     },
-    //タスク追加処理 TODO 入力チェック追加
+    //タスク追加処理
     addTask(){
       this.deadLineToAdd = this.deadLine;
       if(!this.isValid('longTerm')){
@@ -296,6 +389,23 @@ export default {
         return;
       }
       this.textDataSet = dataSet;
+      let tempTodoList = [];
+      tempTodoList = this.textDataSet[2];
+      //todo完了、未完了リスト格納 2022/5/14 値渡しになっているか不安・・・
+      //完了、未完了リフレッシュ
+      this.todoDones = [];
+      this.todoNotDones = [];
+      //todo切り替え用セット
+      if(tempTodoList.length != 0){
+        for(let i = 0; i < tempTodoList.length; i++){
+          if(this.textDataSet[2][i].doneFlg){
+            this.todoDones.push(tempTodoList[i]);
+          }else{
+            this.todoNotDones.push(tempTodoList[i]);
+          }
+        }
+      }
+      tempTodoList = null;
       this.listFlg = true;
     },
     //todo入力チェック taskType:'daily' OR 'longTerm'
@@ -342,24 +452,30 @@ export default {
       }
       return true;
     },
-    //リストにtodo追加
+    //リストにtodo追加 TODO:textL実装
     addTodo(){
       if(!this.isValid('daily')){
         this.addText = '';
         return;
       }
       this.rows2 = JSON.parse(localStorage.getItem('rows'));
+      //todoリスト配列部分の要素はオブジェクト
+      var tempTodo = {
+        text: this.addText,
+        textL: this.addTextL,
+        textLFlg: false,
+        doneFlg: false,
+        priority: 1,
+        //マウスホバー時フラグ
+        hoverFlg: false
+      };
+      //未完了モード用にセット
+      tempTodo.priority = this.todoNotDones.length + 1;
+      this.todoNotDones.push({...tempTodo});
 
+      tempTodo.priority = 1;
       //該当日付のtodo追加が初回の場合
       if(this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.length == 0){
-        //todoリスト配列部分の要素はオブジェクト
-        var tempTodo = {
-          text: this.addText,
-          doneFlg: false,
-          priority: 1,
-          //マウスホバー時フラグ
-          hoverFlg: false
-        };
         this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.push({...tempTodo});
         //画面用にバインド
         this.textDataSet[2].push({...tempTodo});
@@ -369,13 +485,12 @@ export default {
         var arrayLength = this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.length;
         var tempTodo2 = {
           text: this.addText,
+          textL: this.addTextL,
+          textLFlg: false,
           doneFlg: false,
           priority: arrayLength + 1,//優先順位最下位として登録
           hoverFlg: false
-          //for用id
-          //id: 0
         };
-
         //完了が存在する場合は、その中間にtodo挿入する
         if(this.textDataSet[2][arrayLength - 1].doneFlg == true){
           var tempPos = 0;
@@ -399,7 +514,6 @@ export default {
           this.textDataSet[2].push({...tempTodo2});
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.push({...tempTodo2});
         }
-
         tempTodo2 = null;
       }
       //ローカルストレージに永続化
@@ -422,7 +536,7 @@ export default {
 </script>
 
 <style scoped>
-@media screen and (min-width: 1001px){
+@media screen and (min-width: 1501px){
   #parent {
     display: flex;
     margin-top: 40px;
@@ -436,14 +550,46 @@ export default {
     padding-right: 30px;
   }
   #child2 {
+    width: 45%; 
+  }
+  #child2 .input-group,{
+    display: flex;
+  }
+  #input-group2{
+    display: flex;
+  }
+}
+@media screen and (max-width: 1500px){
+  #parent {
+    display: flex;
+    margin-top: 40px;
+    margin-left: 150px;
+    margin-right: 150px;
+    margin-bottom: 40px;
+  }
+  #child1 {
+    width: 55%;
+    margin-right: 20px;
+    padding-right: 30px;
+  }
+  #child2 {
+    display: flex;
+    flex-flow: column;
     width: 45%;
-    /*display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    /*margin-left: 20px;*/
+  }
+  #input-group1,#input-group2{
+    display: flex;
   }
 }
 @media screen and (max-width: 1000px){
+    #parent {
+    display: flex;
+    flex-direction: column;
+    margin-top: 40px;
+    margin-left: 150px;
+    margin-right: 150px;
+    margin-bottom: 40px;
+  }
   #child1{
     width: 100%;
     padding: 60px;
@@ -468,9 +614,6 @@ button.list-btn{
   display: inline-block;
   /*width: 100%;*/
 }
-input#deadLine{
-  height: 30px;
-}
 select{
   position: absolute;
   right: 65px;
@@ -492,8 +635,14 @@ ol#longTerm {
   margin:10px;
   list-style-type: none!important;
 }  
+#daily-child{
+  box-shadow: 4px 5px 0 0 #e8e1d2;
+}
+#long-term-child{
+  box-shadow: 4px 5px 0 0 #e8e1d2;
+}
 /*長期目標用*/
-ol li#longTerm::before {
+ol li#long-term-child::before {
   position: absolute;
   left: 0;
   font-family: "Font Awesome 5 Free"; 
@@ -502,7 +651,7 @@ ol li#longTerm::before {
   color: black;
 }
 /*todo用*/
-ol li#daily::before {
+ol li#daily-child::before {
   position: absolute;
   left: 0;
   font-family: "Font Awesome 5 Free"; 

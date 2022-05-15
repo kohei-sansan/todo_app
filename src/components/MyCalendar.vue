@@ -129,6 +129,7 @@ table {
     outline: 2px solid #ddd;
     border-collapse: collapse;
     table-layout: fixed;
+    box-shadow: 4px 5px 0 0 #e8e1d2;
     width: 100%;
 }
 th, td {

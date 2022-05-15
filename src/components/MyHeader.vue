@@ -1,6 +1,6 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <h2 class="navbar-brand">田中です</h2>
+    <nav class="navbar navbar-light" style="background-color: gold;">
+        <h2 class="navbar-brand">田中タスク_編集中</h2>
     </nav>
 </template>
 <script>
