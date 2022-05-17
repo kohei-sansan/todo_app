@@ -11,7 +11,7 @@
         <h2 style="text-align: left;">{{ currentYear }}年{{ currentMonth }}月{{ selectDate() }}日のタスク</h2>
         <div class="todo-inputarea">
           <input type="text" v-model="addText" style="width: 40%; height: 29px; display: inline-block;" placeholder="タイトル">
-          <textarea v-model="addTextL" ref="addTxtArea" placeholder="メモを追加" :style="textareaStyle"></textarea>
+          <!--<textarea v-model="addTextL" ref="addTxtArea" placeholder="メモを追加" :style="textareaStyle"></textarea>-->
           <button type="text" class="btn btn-primary btn-add" @click="addTodo" style="width: 10%;">追加</button>
           <!--全体、完了、未完了を切り替えるラジオボタン-->
           <input type="radio" name="todos" class="btn-check" id="option1" value="both" v-model="todoState">
@@ -22,29 +22,34 @@
           <label class="btn btn-outline-secondary" for="option3">完了</label>
         </div>
         <transition-group tag="ol" id="daily" v-if="todoState == 'both' ? true : false">
-          <li class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
+          <li v-show="!todo.hidden" class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false"
           :class="{done: todo.doneFlg}">{{ todo.text }}
-            <!--メインテキスト表示ボタン TODO:実装中-->
-            <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" @click="todo.textLFlg = true">メモ表示</button>
+            <!--メインテキスト表示ボタン-->
+            <button v-show="todo.hoverFlg && !todo.textLFlg && !todo.doneFlg" type="text" @click="showTextL(todoIndex)" :disabled="todo.disabled">メモ表示</button>
             <!--完了していないタスクは完了ボタンが押せるようにする-->
-            <button v-show="todo.hoverFlg && !todo.doneFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)">完了</button>
+            <button v-show="todo.hoverFlg && !todo.doneFlg" type="text" class="btn btn-outline-primary list-btn" 
+            @click="makeDone(todoIndex)" :disabled="todo.disabled">完了</button>
             <!--完了したタスクは削除ボタンが押せるようにする-->
-            <button v-show="todo.hoverFlg && todo.doneFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
+            <button v-show="todo.hoverFlg && todo.doneFlg" type="text" class="btn btn-secondary list-btn" 
+            @click="deleteTodo(todoIndex)" :disabled="todo.diabled">削除</button>
             <!--優先順位を決めるドロップダウン-->
             <label v-show="todo.hoverFlg && !todo.doneFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
-            <select  v-show="todo.hoverFlg && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
+            <select  v-show="todo.hoverFlg && !todo.doneFlg" type="number"  id="priority" v-model="todo.priority" 
+            @change="changePriority(todoIndex)" :disabled="todo.disabled">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
             </select>
           </li>
         </transition-group>
         <transition-group tag="ol" id="daily" v-if="todoState == 'not-done' ? true : false">
-          <li class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in todoNotDones" v-bind:key="todo.text"
-          @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}<!--削除、追加処理をtodoStateによって実装追加-->
-            <button v-show="todo.hoverFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)">完了</button>
+          <li v-show="!todo.hidden" class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in todoNotDones" v-bind:key="todo.text"
+          @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}
+            <!--メインテキスト表示ボタン-->
+            <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" @click="showTextL(todoIndex)" :disabled="todo.disabled">メモ表示</button> 
+            <button v-show="todo.hoverFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)" :disabled="todo.disabled">完了</button>
             <label v-show="todo.hoverFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
-            <select  v-show="todo.hoverFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)">
+            <select  v-show="todo.hoverFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)" :disabled="todo.disabled">
               <!--todoValidCount：未完了のtodoの数-->
               <option v-for="n in todoValidCount"  v-bind:key="n" v-bind:value="n">{{ n }}</option>
             </select>
@@ -56,6 +61,13 @@
             <button v-show="todo.hoverFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
           </li>
         </transition-group>
+        <!--メモ表示領域-->
+        <div v-if="editTextFlg">
+          <textarea v-model="editTextL" placeholder="メモを追加" style="width: 70%;float: left;"></textarea>
+          <!--メインテキスト表示中に表示 TODO:保存処理-->
+          <button type="text" @click="saveTextL()">保存</button>
+          <button tyep="text" @click="initListState()">戻る</button><!--TODO-->
+        </div>
       </div>
     </div>
     <div id="child2">
@@ -82,7 +94,7 @@
 <script>
 import {showCalendar, getYM, showNoteJs} from '../calendar';
 import MyCalendar from './MyCalendar';
-import Datepicker from 'vue3-datepicker'
+import Datepicker from 'vue3-datepicker';
 
 export default {
   name: 'MyBody',
@@ -120,12 +132,22 @@ export default {
         deadLine: new Date(),
         deadLineArray: [],
         //todo進捗ラジオボタン用
-        todoState: 'both'
+        todoState: 'both',
+        //編集用テキストL
+        editTextL: '',
+        editTextFlg: false,
+        //表示中テキストインデックス
+        shownTxtIdx: 0
       }
   },
   watch:{
     addTextL(){
       this.addTextLResize();
+    },
+    todoState(newVal, oldVal){
+      if(this.editTextFlg){
+        this.initListState(oldVal);
+      }
     }
   },
   computed:{
@@ -160,6 +182,83 @@ export default {
     this.todoList = JSON.parse(localStorage.getItem('todoList'));
   },
   methods:{
+    //メモ表示から戻る
+    initListState(){
+      if(this.todoState == 'both' || (arguments.length == 1 && arguments[0] == 'both')){
+        for(let i = 0; i < this.textDataSet[2].length; i++){
+          if(i <= this.shownTxtIdx){
+            //disabledフラグを戻す
+            this.textDataSet[2][i].disabled = false;
+          }else if(i > this.shownTxtIdx){
+            //非表示フラグを戻す
+            this.textDataSet[2][i].hidden = false;
+          }
+        }
+        //メモ表示フラグを戻す
+        this.textDataSet[2][this.shownTxtIdx].textLFlg = false;
+      }else if(this.todoState == 'not-done' || (arguments.length == 1 && arguments[0] == 'not-done')){
+        for(let i = 0; i < this.todoNotDones.length; i++){
+          if(i <= this.shownTxtIdx){
+            //disabledを戻す
+            this.todoNotDones[i].disabled = false;
+          }else if(i > this.shownTxtIdx){
+            //非表示フラグを戻す
+            this.todoNotDones[i].hidden = false;
+          }
+        }    
+        //メモ表示フラグをON
+        this.todoNotDones[this.shownTxtIdx].textLFlg = false; 
+      }
+      //メモ用変数を初期化
+      this.editTextL = '';
+      //表示フラグを戻す
+      this.editTextFlg = false;
+    },
+    //メモ保存
+    saveTextL(){
+      this.textDataSet[2][this.shownTxtIdx].textL = this.editTextL;
+      this.todoNotDones[this.shownTxtIdx].textL = this.editTextL;
+
+      this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[this.shownTxtIdx].textL = this.editTextL;
+      localStorage.setItem('rows',JSON.stringify(this.rows2));
+      //ポップアップ表示
+      this.$toast.success("保存しました。");
+    },
+    //メモ表示
+    showTextL(todoIndex){
+      this.shownTxtIdx = todoIndex;
+      if(this.todoState == 'both'){
+        for(let i = 0; i < this.textDataSet[2].length; i++){
+          if(i <= todoIndex){
+            //選択したtodo含めて上のtodoをdisabledにする
+            this.textDataSet[2][i].disabled = true;
+          }else if(i > todoIndex){
+            //選択したtodoより下のtodoの非表示フラグをONにする
+            this.textDataSet[2][i].hidden = true;
+          }
+        }
+        //メモ用変数にバインド
+        this.editTextL = this.textDataSet[2][todoIndex].textL;
+        //メモ表示フラグをON
+        this.textDataSet[2][todoIndex].textLFlg = true;
+      }else if(this.todoState == 'not-done'){
+        for(let i = 0; i < this.todoNotDones.length; i++){
+          if(i <= todoIndex){
+            //選択したtodoより上のtodoをdisabledにする
+            this.todoNotDones[i].disabled = true;
+          }else if(i > todoIndex){
+            //選択したtodoより下のtodoの非表示フラグをONにする
+            this.todoNotDones[i].hidden = true;
+          }
+        }
+        //メモ用変数にバインド
+        this.editTextL = this.todoNotDones[todoIndex].textL;     
+        //メモ表示フラグをON
+        this.todoNotDones[todoIndex].textLFlg = true;   
+      }
+      //表示フラグをONにする
+      this.editTextFlg = true;
+    },
     addTextLResize(){
       this.addTextLHeight = 'auto';
       this.$nextTick(()=>{
@@ -191,12 +290,18 @@ export default {
       let selectedPriority = '';
       if(this.todoState == 'both'){
         selectedPriority = this.textDataSet[2][todoIndex].priority;
+        //優先度が変わらない場合は最初にリターン
+        if(selectedPriority == (todoIndex + 1)){
+          return;
+        }
+        this.todoNotDones[todoIndex].priority = selectedPriority;
       }else if(this.todoState == 'not-done'){
         selectedPriority = this.todoNotDones[todoIndex].priority;
-      }
-      //優先度が変わらない場合は最初にリターン
-      if(selectedPriority == (todoIndex + 1)){
-        return;
+        //優先度が変わらない場合は最初にリターン
+        if(selectedPriority == (todoIndex + 1)){
+          return;
+        }
+        this.textDataSet[2][todoIndex].priority = selectedPriority;
       }
       //優先順位のズレを直す処理（優先度が上がる、下がるそれぞれズレの直し方が違う）
       //現在位置より上の優先度が選択された場合
@@ -219,12 +324,7 @@ export default {
       //選択された行の優先度を更新
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[todoIndex]
         .priority = selectedPriority;
-      //バインド対象ではないモードの優先度セット
-      if(this.todoState == 'both'){
-        this.todoNotDones[todoIndex].priority = selectedPriority;
-      }else if(this.todoState == 'not-done'){
-        this.textDataSet[2][todoIndex].priority = selectedPriority;
-      }
+
       //バインド対象を優先順位でソート
       this.textDataSet[2].sort(this.todoSort);
       this.todoNotDones.sort(this.todoSort);
@@ -381,6 +481,10 @@ export default {
     },
     //カレンダーからデータセット受け取り
     receiveDataSet(dataSet){
+      //メモ領域初期化
+      if(this.editTextFlg){
+        this.initListState();
+      }
       //有効な日付かを判断
       if(!dataSet[3]){//dataSet[3]：今月の日付フラグ
         //これがないと挙動がおかしい
@@ -467,7 +571,9 @@ export default {
         doneFlg: false,
         priority: 1,
         //マウスホバー時フラグ
-        hoverFlg: false
+        hoverFlg: false,
+        disabled: false,
+        hidden: false
       };
       //未完了モード用にセット
       tempTodo.priority = this.todoNotDones.length + 1;
@@ -489,7 +595,9 @@ export default {
           textLFlg: false,
           doneFlg: false,
           priority: arrayLength + 1,//優先順位最下位として登録
-          hoverFlg: false
+          hoverFlg: false,
+          disabled: false,
+          hidden: false
         };
         //完了が存在する場合は、その中間にtodo挿入する
         if(this.textDataSet[2][arrayLength - 1].doneFlg == true){
