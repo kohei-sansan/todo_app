@@ -26,7 +26,9 @@
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false"
           :class="{done: todo.doneFlg}">{{ todo.text }}
             <!--メインテキスト表示ボタン-->
-            <button v-show="todo.hoverFlg && !todo.textLFlg && !todo.doneFlg" type="text" @click="showTextL(todoIndex)" :disabled="todo.disabled">メモ表示</button>
+            <button v-show="todo.hoverFlg && !todo.textLFlg && !todo.doneFlg" type="text" 
+            class="btn btn-outline-primary list-btn" @click="showTextL(todoIndex)" 
+            :disabled="todo.disabled" style="position: absolute;right: 190px;">メモ</button>
             <!--完了していないタスクは完了ボタンが押せるようにする-->
             <button v-show="todo.hoverFlg && !todo.doneFlg" type="text" class="btn btn-outline-primary list-btn" 
             @click="makeDone(todoIndex)" :disabled="todo.disabled">完了</button>
@@ -46,7 +48,7 @@
           <li v-show="!todo.hidden" class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in todoNotDones" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}
             <!--メインテキスト表示ボタン-->
-            <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" @click="showTextL(todoIndex)" :disabled="todo.disabled">メモ表示</button> 
+            <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" class="btn btn-outline-primary list-btn" @click="showTextL(todoIndex)" :disabled="todo.disabled" style="position: absolute;right: 190px;">メモ</button> 
             <button v-show="todo.hoverFlg" type="text" class="btn btn-outline-primary list-btn" @click="makeDone(todoIndex)" :disabled="todo.disabled">完了</button>
             <label v-show="todo.hoverFlg" for="priority" style="position: absolute;right: 85px;">優先度変更：</label>
             <select  v-show="todo.hoverFlg" type="number"  id="priority" v-model="todo.priority" @change="changePriority(todoIndex)" :disabled="todo.disabled">
@@ -83,7 +85,7 @@
       <transition-group tag="ol" id="longTerm" v-if="taskCount">
         <!-- タスクと日付（期限）を表示-->
         <li class="list-group-item" id="long-term-child" v-for="(task, index) in tasks" v-bind:key="task.name" 
-        @mouseover="task.delFlg = true" @mouseleave="task.delFlg = false">{{ task.name }}まであと{{ calcDeadLine(task.deadLine) }}日
+        @mouseover="task.delFlg = true" @mouseleave="task.delFlg = false">{{ task.name }}まであと{{ calcDeadLine(task.deadLine) }}日 期限：{{ formatDate(task.deadLine) }}
         <button v-show="task.delFlg" @click="delTask(index)" class="btn btn-secondary list-btn">削除</button>
         </li>
       </transition-group>
@@ -264,6 +266,13 @@ export default {
       this.$nextTick(()=>{
           this.addTextLHeight = this.$refs.addTxtArea.scrollHeight + 'px';
         })
+    },
+    formatDate(currentDate){
+      let formattedDate = currentDate.getFullYear() + '年'
+                        + (currentDate.getMonth() + 1) + '月' 
+                        + (currentDate.getDate()) + '日';
+
+      return formattedDate;
     },
     twoDigit(value){
       return ('0' + value).slice(-2);
@@ -503,9 +512,9 @@ export default {
       if(tempTodoList.length != 0){
         for(let i = 0; i < tempTodoList.length; i++){
           if(this.textDataSet[2][i].doneFlg){
-            this.todoDones.push(tempTodoList[i]);
+            this.todoDones.push({...tempTodoList[i]});
           }else{
-            this.todoNotDones.push(tempTodoList[i]);
+            this.todoNotDones.push({...tempTodoList[i]});
           }
         }
       }
@@ -729,6 +738,9 @@ select{
 .today{
   background-color: red;
 }
+.list-group-item{
+   padding-left:60px;text-align: left;
+}
 ol#daily {
   padding-left: 0;
   padding-top: 10px;
@@ -784,9 +796,9 @@ ol li#daily-child::before {
   margin-top: 5px;
 }
 .v-enter-active, .v-leave-active, .v-move {
-  transition: transform 0.5s;
+  transition: transform 0.2s;
 }
 .v-enter-from, .v-leave-to {
-  transform: translateX(50%);
+  transform: translateY(50%);
 }
 </style>

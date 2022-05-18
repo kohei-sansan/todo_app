@@ -1,17 +1,20 @@
 <template>
   <my-header></my-header>
   <my-body></my-body>
+  <my-footer></my-footer>
 </template>
 
 <script>
 import MyBody from './components/MyBody.vue'
 import MyHeader from './components/MyHeader.vue'
+import MyFooter from './components/MyFooter.vue'
 
 export default {
   name: 'App',
   components: {
     MyBody,
-    MyHeader
+    MyHeader,
+    MyFooter
   }
 }
 </script>
