@@ -224,7 +224,12 @@ export default {
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[this.shownTxtIdx].textL = this.editTextL;
       localStorage.setItem('rows',JSON.stringify(this.rows2));
       //ポップアップ表示
-      this.$toast.success("保存しました。");
+      this.$toast.show('保存しました。',{
+        type: 'info',
+        position: 'bottom-left',
+        duration: 1400,
+        pauseOnHover: false
+      });
     },
     //メモ表示
     showTextL(todoIndex){

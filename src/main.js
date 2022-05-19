@@ -6,8 +6,6 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import './css/fontawesome/css/all.min.css';
 import Toaster from '@meforma/vue-toaster';
 
-//コンポーネントの追加
-//createApp(App).mount('#app')
-createApp(App)
-.use(Toaster)
-.mount('#app');
+const app = createApp(App);
+app.use(Toaster);
+app.mount('#app');

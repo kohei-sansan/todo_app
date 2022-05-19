@@ -1,7 +1,7 @@
 <template>
     <footer class="footer" style="background-color: gold;">
         <div class="container">
-            <p class="text-muted">Place sticky footer content here.</p>
+            <p class="text-muted">著作権ありま〜す</p>
         </div>
     </footer>
 </template>
