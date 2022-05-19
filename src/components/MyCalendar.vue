@@ -14,8 +14,9 @@
         <tr v-for="(row, index) in rows" v-bind:key="index">
             <!-- dateProps {date:日付 background:背景色 todoList:todoリスト} -->
             <td v-for="(dateProps, index2) in row" v-bind:key="index2" 
-            :class="[dateProps.day, dateProps.background, dateProps.hoverFlg && dateProps.isValid? 'hover':'']" 
-            @click="showNote(index, index2, dateProps.todoList, dateProps.isValid)"
+            :class="[dateProps.day, dateProps.background, dateProps.hoverFlg && dateProps.isValid? 'hover':'',
+            dateProps.isSelected? 'selected':'']" 
+            @click="showNote(index, index2, dateProps)"
             @mouseover="dateProps.hoverFlg = true" @mouseleave="dateProps.hoverFlg = false">
                 {{ dateProps.date }}
             </td>
@@ -35,7 +36,8 @@ export default{
             //week: week,
             period: '',
             textAreaFlg: false,
-            currentText: ''
+            currentText: '',
+            selectedDate: 0
         }
     },
     mounted(){
@@ -44,12 +46,25 @@ export default{
     },
     methods:{
        //日付クリック処理（マッピングされたテキストを表示する）
-       showNote(index, index2, todoList, isValid){
+       showNote(index, index2, dateProps){
+           if(!dateProps.isValid) return;
+           dateProps.isSelected = true;
+           if(this.selectedDate != dateProps.date){
+               preSelect: for(let i = 0; i < this.rows.length; i++){
+                   for(let j = 0; j < 7; j++){
+                       if(this.selectedDate == this.rows[i][j].date){
+                           this.rows[i][j].isSelected = false;
+                           break preSelect;
+                       }
+                   }
+               }
+           }
+           this.selectedDate = dateProps.date;
            var dataSet = [];
            dataSet.push(index);
            dataSet.push(index2);
-           dataSet.push(todoList);
-           dataSet.push(isValid);
+           dataSet.push(dateProps.todoList);
+           dataSet.push(dateProps.isValid);
            this.$emit("show-text", dataSet);
        },
        //mount後のカレンダー読み込み
@@ -123,6 +138,9 @@ export default{
     color: black;
 }
 .hover{
+    background-color: lightblue;
+}
+.selected{
     background-color: lightblue;
 }
 table {

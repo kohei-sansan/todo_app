@@ -44,7 +44,8 @@ function createCalendar(year, month){
                 background: '',
                 isValid: false,
                 todoList: [],
-                hoverFlg: false
+                hoverFlg: false,
+                isSelected: false
             };
             if(j == 0 || j == 6){
                 if(j == 0){

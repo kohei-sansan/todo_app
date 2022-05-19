@@ -45,7 +45,7 @@
           </li>
         </transition-group>
         <transition-group tag="ol" id="daily" v-if="todoState == 'not-done' ? true : false">
-          <li v-show="!todo.hidden" class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in todoNotDones" v-bind:key="todo.text"
+          <li v-show="!todo.hidden && !todo.doneFlg" class="list-group-item" id="daily-child" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}
             <!--メインテキスト表示ボタン-->
             <button v-show="todo.hoverFlg && !todo.textLFlg" type="text" class="btn btn-outline-primary list-btn" @click="showTextL(todoIndex)" :disabled="todo.disabled" style="position: absolute;right: 190px;">メモ</button> 
@@ -58,7 +58,7 @@
           </li>
         </transition-group>
         <transition-group tag="ol" id="daily" v-if="todoState == 'done' ? true : false">
-          <li class="list-group-item done" id="daily-child" v-for="(todo, todoIndex) in todoDones" v-bind:key="todo.text"
+          <li v-show="todo.doneFlg" class="list-group-item done" id="daily-child" v-for="(todo, todoIndex) in textDataSet[2]" v-bind:key="todo.text"
           @mouseover="todo.hoverFlg = true" @mouseleave="todo.hoverFlg = false">{{ todo.text }}
             <button v-show="todo.hoverFlg" type="text" class="btn btn-secondary list-btn" @click="deleteTodo(todoIndex)">削除</button>
           </li>
@@ -186,7 +186,7 @@ export default {
   methods:{
     //メモ表示から戻る
     initListState(){
-      if(this.todoState == 'both' || (arguments.length == 1 && arguments[0] == 'both')){
+      //if(this.todoState == 'both' || (arguments.length == 1 && arguments[0] == 'both')){
         for(let i = 0; i < this.textDataSet[2].length; i++){
           if(i <= this.shownTxtIdx){
             //disabledフラグを戻す
@@ -198,19 +198,20 @@ export default {
         }
         //メモ表示フラグを戻す
         this.textDataSet[2][this.shownTxtIdx].textLFlg = false;
-      }else if(this.todoState == 'not-done' || (arguments.length == 1 && arguments[0] == 'not-done')){
-        for(let i = 0; i < this.todoNotDones.length; i++){
-          if(i <= this.shownTxtIdx){
-            //disabledを戻す
-            this.todoNotDones[i].disabled = false;
-          }else if(i > this.shownTxtIdx){
-            //非表示フラグを戻す
-            this.todoNotDones[i].hidden = false;
-          }
-        }    
-        //メモ表示フラグをON
-        this.todoNotDones[this.shownTxtIdx].textLFlg = false; 
-      }
+      //}
+      // else if(this.todoState == 'not-done' || (arguments.length == 1 && arguments[0] == 'not-done')){
+      //   for(let i = 0; i < this.todoNotDones.length; i++){
+      //     if(i <= this.shownTxtIdx){
+      //       //disabledを戻す
+      //       this.todoNotDones[i].disabled = false;
+      //     }else if(i > this.shownTxtIdx){
+      //       //非表示フラグを戻す
+      //       this.todoNotDones[i].hidden = false;
+      //     }
+      //   }    
+      //   //メモ表示フラグをON
+      //   this.todoNotDones[this.shownTxtIdx].textLFlg = false; 
+      // }
       //メモ用変数を初期化
       this.editTextL = '';
       //表示フラグを戻す
@@ -219,7 +220,7 @@ export default {
     //メモ保存
     saveTextL(){
       this.textDataSet[2][this.shownTxtIdx].textL = this.editTextL;
-      this.todoNotDones[this.shownTxtIdx].textL = this.editTextL;
+      //this.todoNotDones[this.shownTxtIdx].textL = this.editTextL;
 
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[this.shownTxtIdx].textL = this.editTextL;
       localStorage.setItem('rows',JSON.stringify(this.rows2));
@@ -234,7 +235,7 @@ export default {
     //メモ表示
     showTextL(todoIndex){
       this.shownTxtIdx = todoIndex;
-      if(this.todoState == 'both'){
+      //if(this.todoState == 'both'){
         for(let i = 0; i < this.textDataSet[2].length; i++){
           if(i <= todoIndex){
             //選択したtodo含めて上のtodoをdisabledにする
@@ -248,21 +249,22 @@ export default {
         this.editTextL = this.textDataSet[2][todoIndex].textL;
         //メモ表示フラグをON
         this.textDataSet[2][todoIndex].textLFlg = true;
-      }else if(this.todoState == 'not-done'){
-        for(let i = 0; i < this.todoNotDones.length; i++){
-          if(i <= todoIndex){
-            //選択したtodoより上のtodoをdisabledにする
-            this.todoNotDones[i].disabled = true;
-          }else if(i > todoIndex){
-            //選択したtodoより下のtodoの非表示フラグをONにする
-            this.todoNotDones[i].hidden = true;
-          }
-        }
-        //メモ用変数にバインド
-        this.editTextL = this.todoNotDones[todoIndex].textL;     
-        //メモ表示フラグをON
-        this.todoNotDones[todoIndex].textLFlg = true;   
-      }
+      //}
+      // else if(this.todoState == 'not-done'){
+      //   for(let i = 0; i < this.todoNotDones.length; i++){
+      //     if(i <= todoIndex){
+      //       //選択したtodoより上のtodoをdisabledにする
+      //       this.todoNotDones[i].disabled = true;
+      //     }else if(i > todoIndex){
+      //       //選択したtodoより下のtodoの非表示フラグをONにする
+      //       this.todoNotDones[i].hidden = true;
+      //     }
+      //   }
+      //   //メモ用変数にバインド
+      //   this.editTextL = this.todoNotDones[todoIndex].textL;     
+      //   //メモ表示フラグをON
+      //   this.todoNotDones[todoIndex].textLFlg = true;   
+      // }
       //表示フラグをONにする
       this.editTextFlg = true;
     },
@@ -302,28 +304,29 @@ export default {
     //優先順位変更処理 TODO:優先順位の同期をとる && メインテキスト実装
     changePriority(todoIndex){
       let selectedPriority = '';
-      if(this.todoState == 'both'){
+      //if(this.todoState == 'both'){
         selectedPriority = this.textDataSet[2][todoIndex].priority;
         //優先度が変わらない場合は最初にリターン
         if(selectedPriority == (todoIndex + 1)){
           return;
         }
-        this.todoNotDones[todoIndex].priority = selectedPriority;
-      }else if(this.todoState == 'not-done'){
-        selectedPriority = this.todoNotDones[todoIndex].priority;
-        //優先度が変わらない場合は最初にリターン
-        if(selectedPriority == (todoIndex + 1)){
-          return;
-        }
-        this.textDataSet[2][todoIndex].priority = selectedPriority;
-      }
+        //this.todoNotDones[todoIndex].priority = selectedPriority;
+      //}
+      // else if(this.todoState == 'not-done'){
+      //   selectedPriority = this.todoNotDones[todoIndex].priority;
+      //   //優先度が変わらない場合は最初にリターン
+      //   if(selectedPriority == (todoIndex + 1)){
+      //     return;
+      //   }
+      //   this.textDataSet[2][todoIndex].priority = selectedPriority;
+      // }
       //優先順位のズレを直す処理（優先度が上がる、下がるそれぞれズレの直し方が違う）
       //現在位置より上の優先度が選択された場合
       //i.g.優先度４→２の場合、selectedPriority:2 todoIndex:3 移動対象は２
       if(selectedPriority < (todoIndex + 1)){
         for(let i = (selectedPriority - 1); i < todoIndex; i++){
           this.textDataSet[2][i].priority++;
-          this.todoNotDones[i].priority++;
+          //this.todoNotDones[i].priority++;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority++;
         }
       //現在位置より下の優先度が選択された場合
@@ -331,7 +334,7 @@ export default {
       }else{
         for(let i = (todoIndex + 1); i < selectedPriority; i++){
           this.textDataSet[2][i].priority--;
-          this.todoNotDones[i].priority--;
+          //this.todoNotDones[i].priority--;
           this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;
         }
       }
@@ -341,7 +344,7 @@ export default {
 
       //バインド対象を優先順位でソート
       this.textDataSet[2].sort(this.todoSort);
-      this.todoNotDones.sort(this.todoSort);
+      //this.todoNotDones.sort(this.todoSort);
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.sort(this.todoSort);
       //ソートした内容でストレージにセット
       localStorage.setItem('rows',JSON.stringify(this.rows2));
@@ -350,20 +353,20 @@ export default {
     deleteTodo(delIndex){
       if(this.todoState == 'both'){
         //完了モードから削除する用
-        let delTodoTxt = this.textDataSet[2][delIndex].text;
-        let delIndex2 = 0;
-        let delPosFlg = false;
-        while(!delPosFlg){
-          if(this.todoDones[delIndex2].text == delTodoTxt){
-            this.todoDones.splice(delIndex2, 1);
-            delPosFlg = true;
-          }else{
-            delIndex2++;          
-          }
-        }
-        for(let i = delIndex2; i < this.todoDones.length; i++){
-            this.todoDones[i].priority--;
-        }
+        // let delTodoTxt = this.textDataSet[2][delIndex].text;
+        // let delIndex2 = 0;
+        // let delPosFlg = false;
+        // while(!delPosFlg){
+        //   if(this.todoDones[delIndex2].text == delTodoTxt){
+        //     this.todoDones.splice(delIndex2, 1);
+        //     delPosFlg = true;
+        //   }else{
+        //     delIndex2++;          
+        //   }
+        // }
+        // for(let i = delIndex2; i < this.todoDones.length; i++){
+        //     this.todoDones[i].priority--;
+        // }
 
         this.textDataSet[2].splice(delIndex, 1);
         this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex, 1);
@@ -376,32 +379,48 @@ export default {
           }
         }
       }else if(this.todoState == 'done'){
-        //完了リスト内で削除された際の処理
-        //全表示モードでの削除
-        let delTodoTxt = this.todoDones[delIndex].text;
-        let delIndex2 = 0;
-        let delPosFlg = false;
-        while(!delPosFlg){
-          if(this.textDataSet[2][delIndex2].text == delTodoTxt){
-            this.textDataSet[2].splice(delIndex2, 1);
-            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex2, 1);
-            delPosFlg = true;
-          }else{
-            delIndex2++;          
+        let toDelText = this.textDataSet[2][delIndex].text;
+        for(let i = 0; i < this.textDataSet[2].length; i++){
+          if(toDelText == this.textDataSet[2][i].text){
+            this.textDataSet[2].splice(i, 1);
+            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(i, 1);
+            
+            if(i != this.textDataSet[2].length){
+              for(let j = i; j < this.textDataSet[2].length; i++){
+                this.textDataSet[2][j].priority--;
+                this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[j].priority--;
+              }
+            }
           }
         }
-        for(let i = delIndex2; i < this.textDataSet[2].length; i++){
-            this.textDataSet[2][i].priority--;
-            this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;      
-        }
+      }
+      // else if(this.todoState == 'done'){
+      //   //完了リスト内で削除された際の処理
+      //   //全表示モードでの削除
+      //   let delTodoTxt = this.todoDones[delIndex].text;
+      //   let delIndex2 = 0;
+      //   let delPosFlg = false;
+      //   while(!delPosFlg){
+      //     if(this.textDataSet[2][delIndex2].text == delTodoTxt){
+      //       this.textDataSet[2].splice(delIndex2, 1);
+      //       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.splice(delIndex2, 1);
+      //       delPosFlg = true;
+      //     }else{
+      //       delIndex2++;          
+      //     }
+      //   }
+      //   for(let i = delIndex2; i < this.textDataSet[2].length; i++){
+      //       this.textDataSet[2][i].priority--;
+      //       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;      
+      //   }
 
-        //完了モードの削除
-        this.todoDones.splice(delIndex, 1);
-        //優先度ズレ調整
-        for(let i = delIndex; i < this.todoDones.length; i++){
-            this.todoDones[i].priority--;
-        }   
-      }     
+      //   //完了モードの削除
+      //   this.todoDones.splice(delIndex, 1);
+      //   //優先度ズレ調整
+      //   for(let i = delIndex; i < this.todoDones.length; i++){
+      //       this.todoDones[i].priority--;
+      //   }   
+      // }     
       //ローカルストレージを更新
       localStorage.setItem('rows',JSON.stringify(this.rows2));
     },
@@ -418,9 +437,9 @@ export default {
       this.textDataSet[2][taskIndex].priority = lastPriority;
       this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[taskIndex].priority = lastPriority;
       //未完了モードから削除
-      this.todoNotDones.splice(taskIndex, 1);
+      //this.todoNotDones.splice(taskIndex, 1);
       //完了モードに追加
-      this.todoDones.push({...this.textDataSet[2][taskIndex]});
+      //this.todoDones.push({...this.textDataSet[2][taskIndex]});
       //順位をずらす
       for(var i = 0; i < this.textDataSet[2].length; i++){
         if(i != taskIndex){
@@ -429,9 +448,9 @@ export default {
             this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList[i].priority--;       
           }
         }
-        if(i >= taskIndex && i <= this.todoNotDones.length - 1){
-          this.todoNotDones[i].priority--;
-        }
+        // if(i >= taskIndex && i <= this.todoNotDones.length - 1){
+        //   this.todoNotDones[i].priority--;
+        // }
       }
       //優先度でソート
       this.textDataSet[2].sort(this.todoSort);
@@ -507,23 +526,24 @@ export default {
         return;
       }
       this.textDataSet = dataSet;
-      let tempTodoList = [];
-      tempTodoList = this.textDataSet[2];
-      //todo完了、未完了リスト格納 2022/5/14 値渡しになっているか不安・・・
-      //完了、未完了リフレッシュ
-      this.todoDones = [];
-      this.todoNotDones = [];
-      //todo切り替え用セット
-      if(tempTodoList.length != 0){
-        for(let i = 0; i < tempTodoList.length; i++){
-          if(this.textDataSet[2][i].doneFlg){
-            this.todoDones.push({...tempTodoList[i]});
-          }else{
-            this.todoNotDones.push({...tempTodoList[i]});
-          }
-        }
-      }
-      tempTodoList = null;
+      //参照渡し修正
+      // let tempTodoList = [];
+      // tempTodoList = this.textDataSet[2];
+      // //todo完了、未完了リスト格納 2022/5/14 値渡しになっているか不安・・・
+      // //完了、未完了リフレッシュ
+      // this.todoDones = [];
+      // this.todoNotDones = [];
+      // //todo切り替え用セット
+      // if(tempTodoList.length != 0){
+      //   for(let i = 0; i < tempTodoList.length; i++){
+      //     if(this.textDataSet[2][i].doneFlg){
+      //       this.todoDones.push({...tempTodoList[i]});
+      //     }else{
+      //       this.todoNotDones.push({...tempTodoList[i]});
+      //     }
+      //   }
+      // }
+      //tempTodoList = null;
       this.listFlg = true;
     },
     //todo入力チェック taskType:'daily' OR 'longTerm'
@@ -590,10 +610,10 @@ export default {
         hidden: false
       };
       //未完了モード用にセット
-      tempTodo.priority = this.todoNotDones.length + 1;
-      this.todoNotDones.push({...tempTodo});
+      // tempTodo.priority = this.todoNotDones.length + 1;
+      // this.todoNotDones.push({...tempTodo});
 
-      tempTodo.priority = 1;
+      //tempTodo.priority = 1;
       //該当日付のtodo追加が初回の場合
       if(this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.length == 0){
         this.rows2[this.textDataSet[0]][this.textDataSet[1]].todoList.push({...tempTodo});
